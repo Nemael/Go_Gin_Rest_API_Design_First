@@ -1,0 +1,63 @@
+{
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "schemes": [
+    "http"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "title": "Books API.",
+    "version": "1.0.0"
+  },
+  "host": "localhost:8080",
+  "basePath": "/",
+  "paths": {
+    "/books": {
+      "get": {
+        "tags": [
+          "books"
+        ],
+        "summary": "GetBooks returns all books.",
+        "operationId": "getbooks"
+      },
+      "post": {
+        "tags": [
+          "books"
+        ],
+        "summary": "CreateBook creates a book from json data and returns it. A book contains a key (int), a title (string), an author (string) and a quantity (int). All values are required.",
+        "operationId": "createBook"
+      }
+    },
+    "/books/{id}": {
+      "get": {
+        "tags": [
+          "books"
+        ],
+        "summary": "GetBookById return a book by its id. If no book is associated to this id, this route will give an error.",
+        "operationId": "getBookById"
+      }
+    },
+    "/checkout?id={id}": {
+      "patch": {
+        "tags": [
+          "books"
+        ],
+        "summary": "CheckoutBook checks out the book corresponding to the given id. Checking out a book means its quantity will be reduced by 1. If there is no copy available (quantity = 0), it is not possible to check out this book and this route will give an error.",
+        "operationId": "getBookById"
+      }
+    },
+    "/return?id={id}": {
+      "patch": {
+        "tags": [
+          "books"
+        ],
+        "summary": "ReturnBook returns the book corresponding to the given id. Returning a book means its quantity will be increased by 1. If there is no id associated with this book, the route will give an error.",
+        "operationId": "getBookById"
+      }
+    }
+  }
+}
