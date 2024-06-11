@@ -58,9 +58,9 @@ func getDB() (*sql.DB, error) {
 	return sql.Open("mysql", ConnectionString)
 }
 
-//swagger:route GET /books books getbooks
-//
 // GetBooks returns all books.
+//
+//swagger:route GET /books books getbooks
 func getBooks(c *gin.Context) {
 	books := []Book{}
 	db, err := getDB()
@@ -84,9 +84,9 @@ func getBooks(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, books) //Data sent is the books struct
 }
 
-//swagger:route GET /books/{id} books getBookById
-//
 // GetBookById return a book by its id. If no book is associated to this id, this route will give an error.
+//
+//swagger:route GET /books/{id} books getBookById
 func getBookById(c *gin.Context) {
 	db, err := getDB()
 	if err != nil {
@@ -108,9 +108,9 @@ func getBookById(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, book)
 }
 
-//swagger:route POST /books books createBook
-//
 // CreateBook creates a book from json data and returns it. A book contains a key (int), a title (string), an author (string) and a quantity (int). All values are required.
+//
+//swagger:route POST /books books createBook
 func createBook(c *gin.Context) {
 	var newBook Book
 	db, err := getDB()
@@ -123,15 +123,15 @@ func createBook(c *gin.Context) {
 	}
 	_, err = db.Exec("INSERT INTO books (id, title, author, quantity) VALUES (?, ?, ?, ?)", newBook.ID, newBook.Title, newBook.Author, newBook.Quantity)
 	if err != nil {
-		c.IndentedJSON(http.StatusForbidden, gin.H{"message": "Error inserting into the database"})
+		c.IndentedJSON(http.StatusForbidden, gin.H{"message": "Error inserting into the database, ID is already in use."})
 		return
 	}
 	c.IndentedJSON(http.StatusCreated, newBook)
 }
 
-//swagger:route PATCH /checkout?id={id} books getBookById
-//
 // CheckoutBook checks out the book corresponding to the given id. Checking out a book means its quantity will be reduced by 1. If there is no copy available (quantity = 0), it is not possible to check out this book and this route will give an error.
+//
+//swagger:route PATCH /checkout?id={id} books getBookById
 func checkoutBook(c *gin.Context) {
 	db, err := getDB()
 	if err != nil {
@@ -168,9 +168,9 @@ func checkoutBook(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, book)
 }
 
-//swagger:route PATCH /return?id={id} books getBookById
-//
 // ReturnBook returns the book corresponding to the given id. Returning a book means its quantity will be increased by 1. If there is no id associated with this book, the route will give an error.
+//
+//swagger:route PATCH /return?id={id} books getBookById
 func returnBook(c *gin.Context) {
 	db, err := getDB()
 	if err != nil {
@@ -203,6 +203,39 @@ func returnBook(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, book)
 }
 
+// DeleteBook Deletes a book form ID
+//
+//swagger:route DELETE /books?id={id} books getBookById
+func deleteBook(c *gin.Context) {
+	db, err := getDB()
+	if err != nil {
+		c.IndentedJSON(http.StatusForbidden, gin.H{"message": "Database connection failed."})
+		return
+	}
+	str_id, ok := c.GetQuery("id") //Get inline query
+	id, err := strconv.Atoi(str_id)
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Id is not a valid number"}) //gin.H is a shortcut to write custom json
+		return
+	}
+
+	if !ok {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Missing id query parameter."})
+		return
+	}
+
+	var book Book
+	row := db.QueryRow("SELECT id, title, author, quantity FROM books where id = ?", id)
+	err = row.Scan(&book.ID, &book.Title, &book.Author, &book.Quantity)
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Book not found."}) //gin.H is a shortcut to write custom json
+		return
+	}
+
+	db.QueryRow("DELETE FROM books where id = ?", id)
+	c.IndentedJSON(http.StatusOK, gin.H{"message": "Book deleted succesfully"})
+}
+
 func main() {
 	// Ping database
 	db, err := getDB()
@@ -218,9 +251,10 @@ func main() {
 	}
 	router := gin.Default()
 	router.GET("/books", getBooks)
-	router.GET("/books/:id", getBookById) // ':id' Setups a path parameter
 	router.POST("/books", createBook)
+	router.DELETE("/books", deleteBook)
 	router.PATCH("/checkout", checkoutBook)
+	router.GET("/books/:id", getBookById) // ':id' Setups a path parameter
 	router.PATCH("/return", returnBook)
 	router.Run("localhost:8080")
 }

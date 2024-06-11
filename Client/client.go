@@ -98,6 +98,32 @@ func addBookCmd() *cobra.Command {
 	}
 }
 
+func deleteBookCmd() *cobra.Command {
+	return &cobra.Command{
+		Use: "deletebook",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			client := &http.Client{}
+			url := "http://localhost:8080/books?id=" + args[0]
+			req, err := http.NewRequest(http.MethodDelete, url, nil)
+			req.Header.Set("Content-Type", "application/json")
+			if err != nil {
+				log.Fatal(err)
+			}
+			resp, err := client.Do(req)
+			if err != nil {
+				log.Fatal(err)
+			}
+			defer resp.Body.Close()
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println(string(body))
+			return nil
+		},
+	}
+}
+
 func checkoutBookCmd() *cobra.Command {
 	return &cobra.Command{
 		Use: "checkout",
@@ -160,6 +186,7 @@ func main() {
 	cmd.AddCommand(getBooksCmd())
 	cmd.AddCommand(getBookCmd())
 	cmd.AddCommand(addBookCmd())
+	cmd.AddCommand(deleteBookCmd())
 	cmd.AddCommand(checkoutBookCmd())
 	cmd.AddCommand(returnBookCmd())
 

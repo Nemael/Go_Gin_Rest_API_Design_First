@@ -45,4 +45,4 @@
 - Clean my REST API Server code (a lot of repeating code can be but into functions)
 - Move my REST API Server code to MVC structure (model/view/controller) model will have the book struct, controller will have the many methods to get the data, and view will have the router setting, I guess?
 - Clean my REST API Client
-- Try to use go-swagger to generate an API directly (https://friendlyuser.github.io/posts/tech/2023/Using_Go-Swagger_in_Golang_A_Comprehensive_Guide/)
+- It would be possible to use concurrency for better API calls and database access (threads?)
